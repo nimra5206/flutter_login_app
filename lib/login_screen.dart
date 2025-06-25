@@ -8,55 +8,52 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-
-  void _login() {
-    if (_formKey.currentState!.validate()) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
-      );
-    }
-  }
+  String email = '';
+  String password = '';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Login')),
+      appBar: AppBar(title: Text("Login")),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               TextFormField(
-                controller: emailController,
-                decoration: InputDecoration(labelText: 'Email'),
+                decoration: InputDecoration(labelText: "Email"),
                 validator: (value) {
-                  if (value == null || !value.contains('@')) {
-                    return 'Enter a valid email';
+                  if (value == null || value.isEmpty || !value.contains("@")) {
+                    return "Enter a valid email";
                   }
                   return null;
                 },
+                onSaved: (value) => email = value!,
               ),
-              SizedBox(height: 10),
               TextFormField(
-                controller: passwordController,
+                decoration: InputDecoration(labelText: "Password"),
                 obscureText: true,
-                decoration: InputDecoration(labelText: 'Password'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Password cannot be empty';
+                    return "Enter password";
                   }
                   return null;
                 },
+                onSaved: (value) => password = value!,
               ),
               SizedBox(height: 20),
-              TextButton(onPressed: () {}, child: Text("Forgot Password?")),
-              SizedBox(height: 10),
-              ElevatedButton(onPressed: _login, child: Text('Login')),
+              TextButton(child: Text("Forgot Password?"), onPressed: () {}),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    _formKey.currentState!.save();
+                    Navigator.pushNamed(context, '/home');
+                  }
+                },
+                child: Text("Login"),
+              ),
             ],
           ),
         ),

@@ -1,35 +1,53 @@
-# Flutter Login App
+# Flutter Task Management App
 
-A simple Flutter application demonstrating a login screen, form validation, and navigation to a home screen.
+This is a multi-screen Flutter application developed over three weeks, focusing on core Flutter concepts like UI design, navigation, state management, and local storage using `SharedPreferences`.
 
-## 🚀 Features
+## 📅 Project Timeline
 
-- Responsive UI using `Column`, `Row`, `Container`
-- Email format validation
-- Password non-empty validation
-- Navigation to Home Screen using `Navigator.push()`
+| Week | Focus Area                               | Deliverables                         |
+|------|-------------------------------------------|--------------------------------------|
+| 1    | Basic UI and Navigation                  | Login and Home Screen                |
+| 2    | State Management and Persistence         | Counter App and To-Do List           |
+| 3    | Final Project: Task Manager App          | Complete Task App with CRUD Features |
 
-## 📂 Project Structure
+---
 
-lib/
-├── main.dart # App entry point
-├── login_screen.dart # Login UI and validation
-└── home_screen.dart # Home screen after login
+## 📱 Features
 
-markdown
-Copy
-Edit
+### ✅ Week 1: Login and Navigation
+- Login form with:
+  - Email and password fields.
+  - Validation (email format & required password).
+- Navigation to Home Screen.
+- "Forgot Password?" placeholder.
 
-## 🧰 Getting Started
+### ✅ Week 2: State & Persistent Storage
+- **Counter App**:
+  - Increase/decrease counter.
+  - Persist counter using SharedPreferences.
+- **To-Do List App**:
+  - Add and view tasks.
+  - Persist tasks locally.
+
+### ✅ Week 3: Task Manager App
+- Add, delete, and mark tasks as complete.
+- Persist tasks using `SharedPreferences`.
+- AppBar with action button.
+- Icon integration for UX improvement.
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
-
-- Flutter SDK installed
+- Flutter SDK
 - Android Studio or VS Code with Flutter plugin
-- Android Emulator or physical device connected
+- Dart SDK
+- Emulator or physical Android/iOS device
 
-### Run the App
+### Installation
 
-```bash
-flutter pub get
-flutter run
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-username/flutter_task_manager.git
+   cd flutter_task_manager
