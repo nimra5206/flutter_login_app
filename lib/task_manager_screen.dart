@@ -1,106 +1,99 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import '../providers/task_provider.dart';
+// ignore: unused_import
+import '../models/task.dart';
 
-class TaskManagerScreen extends StatefulWidget {
-  @override
-  _TaskManagerScreenState createState() => _TaskManagerScreenState();
-}
+class TaskManagerScreen extends StatelessWidget {
+  final TextEditingController _controller = TextEditingController();
 
-class _TaskManagerScreenState extends State<TaskManagerScreen> {
-  final _controller = TextEditingController();
-  List<String> _tasks = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadTasks();
+  void _showAddTaskDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder:
+          (_) => AlertDialog(
+            title: Text("New Task"),
+            content: TextField(
+              controller: _controller,
+              decoration: InputDecoration(hintText: "Enter task"),
+              onSubmitted: (_) {
+                _addTask(context);
+                Navigator.pop(context);
+              },
+            ),
+            actions: [
+              TextButton(
+                child: Text("Add"),
+                onPressed: () {
+                  _addTask(context);
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+    );
   }
 
-  _loadTasks() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _tasks = prefs.getStringList('tasks') ?? [];
-    });
-  }
-
-  _saveTasks() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setStringList('tasks', _tasks);
-  }
-
-  _addTask(String task) {
-    setState(() {
-      _tasks.add(task);
-    });
-    _saveTasks();
-    _controller.clear();
-  }
-
-  _deleteTask(int index) {
-    setState(() {
-      _tasks.removeAt(index);
-    });
-    _saveTasks();
-  }
-
-  _toggleComplete(int index) {
-    setState(() {
-      _tasks[index] =
-          _tasks[index].startsWith("[x] ")
-              ? _tasks[index].replaceFirst("[x] ", "")
-              : "[x] ${_tasks[index]}";
-    });
-    _saveTasks();
+  void _addTask(BuildContext context) {
+    final provider = Provider.of<TaskProvider>(context, listen: false);
+    final text = _controller.text.trim();
+    if (text.isNotEmpty) {
+      provider.addTask(text);
+      _controller.clear();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Task Manager"),
+        title: Text("Task Manager (Provider)"),
         actions: [
           IconButton(
             icon: Icon(Icons.add),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder:
-                    (_) => AlertDialog(
-                      title: Text("New Task"),
-                      content: TextField(
-                        controller: _controller,
-                        decoration: InputDecoration(hintText: "Enter task"),
-                        onSubmitted: _addTask,
-                      ),
-                      actions: [
-                        TextButton(
-                          child: Text("Add"),
-                          onPressed: () {
-                            _addTask(_controller.text);
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ],
-                    ),
-              );
-            },
+            onPressed: () => _showAddTaskDialog(context),
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: _tasks.length,
-        itemBuilder:
-            (_, i) => ListTile(
-              title: Text(_tasks[i]),
-              leading: IconButton(
-                icon: Icon(Icons.check),
-                onPressed: () => _toggleComplete(i),
-              ),
-              trailing: IconButton(
-                icon: Icon(Icons.delete),
-                onPressed: () => _deleteTask(i),
-              ),
-            ),
+      body: Consumer<TaskProvider>(
+        builder: (context, taskProvider, _) {
+          final tasks = taskProvider.tasks;
+
+          if (tasks.isEmpty) {
+            return Center(child: Text("No tasks yet."));
+          }
+
+          return ListView.builder(
+            itemCount: tasks.length,
+            itemBuilder: (_, index) {
+              final task = tasks[index];
+              return ListTile(
+                title: Text(
+                  task.title,
+                  style: TextStyle(
+                    decoration:
+                        task.isCompleted
+                            ? TextDecoration.lineThrough
+                            : TextDecoration.none,
+                  ),
+                ),
+                leading: IconButton(
+                  icon: Icon(
+                    task.isCompleted
+                        ? Icons.check_box
+                        : Icons.check_box_outline_blank,
+                    color: task.isCompleted ? Colors.green : null,
+                  ),
+                  onPressed: () => taskProvider.toggleTask(task.id),
+                ),
+                trailing: IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => taskProvider.deleteTask(task.id),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }

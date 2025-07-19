@@ -1,35 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import '../providers/task_provider.dart';
+import '../models/task.dart';
 
-class TodoListScreen extends StatefulWidget {
-  @override
-  _TodoListScreenState createState() => _TodoListScreenState();
-}
+class TodoListScreen extends StatelessWidget {
+  final TextEditingController _controller = TextEditingController();
 
-class _TodoListScreenState extends State<TodoListScreen> {
-  final _controller = TextEditingController();
-  List<String> _tasks = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadTasks();
-  }
-
-  _loadTasks() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _tasks = prefs.getStringList('todo_tasks') ?? [];
-    });
-  }
-
-  _addTask(String task) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _tasks.add(task);
-    });
-    prefs.setStringList('todo_tasks', _tasks);
-    _controller.clear();
+  void _addTask(BuildContext context) {
+    final text = _controller.text.trim();
+    if (text.isNotEmpty) {
+      Provider.of<TaskProvider>(context, listen: false).addTask(text);
+      _controller.clear();
+    }
   }
 
   @override
@@ -42,14 +24,56 @@ class _TodoListScreenState extends State<TodoListScreen> {
             padding: const EdgeInsets.all(12.0),
             child: TextField(
               controller: _controller,
-              decoration: InputDecoration(labelText: 'Enter Task'),
-              onSubmitted: _addTask,
+              decoration: InputDecoration(
+                labelText: 'Enter Task',
+                suffixIcon: IconButton(
+                  icon: Icon(Icons.add),
+                  onPressed: () => _addTask(context),
+                ),
+              ),
+              onSubmitted: (_) => _addTask(context),
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: _tasks.length,
-              itemBuilder: (_, i) => ListTile(title: Text(_tasks[i])),
+            child: Consumer<TaskProvider>(
+              builder: (context, taskProvider, _) {
+                final tasks = taskProvider.tasks;
+
+                if (tasks.isEmpty) {
+                  return Center(child: Text("No tasks added yet."));
+                }
+
+                return ListView.builder(
+                  itemCount: tasks.length,
+                  itemBuilder: (_, i) {
+                    final task = tasks[i];
+                    return ListTile(
+                      title: Text(
+                        task.title,
+                        style: TextStyle(
+                          decoration:
+                              task.isCompleted
+                                  ? TextDecoration.lineThrough
+                                  : TextDecoration.none,
+                        ),
+                      ),
+                      leading: IconButton(
+                        icon: Icon(
+                          task.isCompleted
+                              ? Icons.check_box
+                              : Icons.check_box_outline_blank,
+                          color: task.isCompleted ? Colors.green : null,
+                        ),
+                        onPressed: () => taskProvider.toggleTask(task.id),
+                      ),
+                      trailing: IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red),
+                        onPressed: () => taskProvider.deleteTask(task.id),
+                      ),
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],
